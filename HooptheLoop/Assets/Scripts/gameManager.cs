@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using Valve.VR;
 
 
@@ -13,18 +13,23 @@ public class gameManager : MonoBehaviour
     [Header("Ring & Shrinking")]
     public GameObject ring;
     public float shrinkFactor = 0.01f;
+    public float startingRadius = 1.5f;
     public float smallestRadius = 0.1f;
 
     [Header("Bar Spawn")]
     public GameObject spawnPoint;
     public SteamVR_Action_Boolean spawnTube;
+    public SteamVR_Action_Boolean restart;
     public SteamVR_Input_Sources handType;
     public GameObject barParent;
-    public int[] numberOfTimes = new int[] { 0, 0, 0 };
+    public GameObject barParentPrefab;
+    private int[] numberOfTimes = new int[] { 0, 0, 0 };
     public GameObject[] barPrefabs;
 
-    [Header("Other")]
-    public Canvas gameOverCanvas;
+    [Header("Gameover objects to Enable/Disable")]
+    public GameObject[] objectsToEnable;
+    public GameObject[] objectsToDisable;
+    
 
     private int currentNumber = 0;
     private int previousNumber = 0;
@@ -35,18 +40,26 @@ public class gameManager : MonoBehaviour
     private GameObject previousBar;
 
 
-    
     private void Start()
     {
-        gameOverCanvas.gameObject.SetActive(false);
+        EnableObjects(objectsToDisable);
+        DisableObjects(objectsToEnable);
         spawnTube.AddOnStateDownListener(TriggerDown, handType);
+        restart.AddOnStateDownListener(GripDown, handType);
     }
 
     private void Update()
     {
+        if (gameStarted == true)
+        {
+            DisableObjects(objectsToDisable);
+            DisableObjects(objectsToEnable);
+            barParent.SetActive(true);
+        }
         if (gameOver == true && godMode == false)
         {
-            gameOverCanvas.gameObject.SetActive(true);
+            EnableObjects(objectsToEnable);
+            DisableObjects(objectsToDisable);
             barParent.SetActive(false);
         }
     }
@@ -64,18 +77,6 @@ public class gameManager : MonoBehaviour
                 {
                     case 0:
                         currentNumber = Random.Range(0, 3);
-                        /*if (numberOfTimes[0] >= 2 && currentNumber == 0)
-                        {
-                            currentNumber = Random.Range(0, 2);
-                            if (currentNumber == 0)
-                            {
-                                currentNumber = 1;
-                            }else if (currentNumber == 1)
-                            {
-                                currentNumber = 2;
-                            }
-                            numberOfTimes[0] = 0;
-                        }*/
                         previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
                         numberOfTimes[currentNumber]++;
                         break;
@@ -109,6 +110,22 @@ public class gameManager : MonoBehaviour
 
     }
 
+    public void GripDown(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    {
+        Debug.Log("grip pressed");
+        if (gameOver == true)
+        {
+            gameStarted = false;
+            gameOver = false;
+            EnableObjects(objectsToDisable);
+            DisableObjects(objectsToEnable);
+            Destroy(barParent);
+            barParent = Instantiate(barParentPrefab, Vector3.zero, Quaternion.identity);
+            previousNumber = 0;
+            ring.transform.localScale = new Vector3(startingRadius, startingRadius, 0.1f);
+        }
+    }
+
     private void FixedUpdate()
     {
         if (ring.transform.localScale.x <= smallestRadius)
@@ -120,4 +137,19 @@ public class gameManager : MonoBehaviour
             ring.transform.localScale += new Vector3(-shrinkFactor/100f, -shrinkFactor / 100f, 0f);
         }
     }
+    public void EnableObjects(GameObject[] objects)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            objects[i].SetActive(true);
+        }
+    }
+    public void DisableObjects(GameObject[] objects)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            objects[i].SetActive(false);
+        }
+    }
 }
+

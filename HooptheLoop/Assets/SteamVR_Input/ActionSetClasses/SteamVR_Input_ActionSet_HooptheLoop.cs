@@ -24,5 +24,13 @@ namespace Valve.VR
                 return SteamVR_Actions.hooptheLoop_spawnTube;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean restart
+        {
+            get
+            {
+                return SteamVR_Actions.hooptheLoop_restart;
+            }
+        }
     }
 }

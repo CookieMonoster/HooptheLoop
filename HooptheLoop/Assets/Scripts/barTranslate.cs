@@ -7,6 +7,10 @@ public class barTranslate : MonoBehaviour
     public float translateFactor = 1f;
     public gameManager _gameManager;
 
+    private void Start()
+    {
+        _gameManager = GameObject.FindWithTag("GameManager").GetComponent<gameManager>();
+    }
     void FixedUpdate()
     {
         if(_gameManager.gameStarted == true)

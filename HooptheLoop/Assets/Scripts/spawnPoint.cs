@@ -32,7 +32,6 @@ public class spawnPoint : MonoBehaviour
         Debug.Log("Trigger is down");
         if (_gameManager.gameStarted == false)
         {
-            
             Instantiate(tube, transform.position, Quaternion.identity);
             _gameManager.gameStarted = true;
         }
