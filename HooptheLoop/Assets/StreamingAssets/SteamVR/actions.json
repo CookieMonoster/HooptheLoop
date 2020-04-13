@@ -84,11 +84,13 @@
     },
     {
       "name": "/actions/HooptheLoop/in/spawnTube",
-      "type": "boolean"
+      "type": "boolean",
+      "requirement": "mandatory"
     },
     {
       "name": "/actions/HooptheLoop/in/restart",
-      "type": "boolean"
+      "type": "boolean",
+      "requirement": "mandatory"
     }
   ],
   "action_sets": [
