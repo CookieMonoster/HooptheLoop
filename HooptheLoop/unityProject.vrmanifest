@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.hooptheloop.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\Leo\\Documents\\GitHub\\HooptheLoop\\HooptheLoop\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "C:\\Users\\Leo\\Downloads\\HooptheLoop-master\\HooptheLoop-master\\HooptheLoop\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "HooptheLoop [Testing]"

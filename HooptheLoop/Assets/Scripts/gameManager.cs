@@ -12,6 +12,7 @@ public class gameManager : MonoBehaviour
 
     [Header("Ring & Shrinking")]
     public GameObject ring;
+    public GameObject pointer;
     public float shrinkFactor = 0.01f;
     public float startingRadius = 1.5f;
     public float smallestRadius = 0.1f;
@@ -30,6 +31,7 @@ public class gameManager : MonoBehaviour
     private int previousNumber = 0;
     private GameObject previousBar;
 
+
     [Header("Gameover objects to Enable/Disable")]
     public GameObject[] objectsToEnable;
     public GameObject[] objectsToDisable;
@@ -39,12 +41,22 @@ public class gameManager : MonoBehaviour
 
     private void Start()
     {
+        
+
+
         EnableObjects(objectsToDisable);
         DisableObjects(objectsToEnable);
+        
     }
 
     private void Update()
     {
+        ring = GameObject.Find("Ring");
+        pointer = GameObject.Find("Pointer");
+        ring.SetActive(true);
+        pointer.SetActive(true);
+
+
         if (gameStarted == true)
         {
             DisableObjects(objectsToDisable);
