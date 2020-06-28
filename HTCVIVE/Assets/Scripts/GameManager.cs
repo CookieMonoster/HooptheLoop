@@ -1,0 +1,206 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using HTC.UnityPlugin.Vive;
+
+public class GameManager : MonoBehaviour
+{
+    [Header("Game State")]
+    public bool gameStarted = false;
+    public bool gameOver = false;
+    public bool godMode = false;
+
+    [Header("Ring & Shrinking")]
+    public GameObject ring;
+    public float shrinkFactor = 0.01f;
+    public float startingRadius = 1.5f;
+    public float smallestRadius = 0.1f;
+
+    [Header("Bar Spawn")]
+    public GameObject spawnPoint;
+    public GameObject barParent;
+    public GameObject barParentPrefab;
+    private int[] numberOfTimes = new int[] { 0, 0, 0 };
+    public GameObject[] barPrefabs;
+    public int barLength = 100;
+    private int currentNumber = 0;
+    private int previousNumber = 0;
+    private GameObject previousBar;
+
+    [Header("Score Keep")]
+    public float gameTime = 0.0f;
+    public Text timeText;
+    public Text gameOverTimeText;
+
+
+    [Header("Gameover objects to Enable/Disable")]
+    public GameObject[] objectsToEnable;
+    public GameObject[] objectsToDisable;
+    private int gameOverRunNumber = 0;
+    private int gameStartRunNumber = 0;
+
+
+
+    private void Start()
+    {
+        EnableObjects(objectsToDisable);
+        DisableObjects(objectsToEnable);
+    }
+
+    private void Update()
+    {
+        ring = GameObject.Find("Ring");
+        ring.SetActive(true);
+
+
+
+        if (gameStarted == true)
+        {
+            timeText.gameObject.SetActive(true);
+
+            if(gameOver != true)
+            {
+                gameTime += Time.deltaTime;
+                timeText.text = gameTime.ToString("F2") + "sec";
+            }
+            if(gameStartRunNumber < 1)
+            {
+                DisableObjects(objectsToDisable);
+                DisableObjects(objectsToEnable);
+                barParent.SetActive(true);
+            }
+            gameStartRunNumber++;
+        }
+        if (gameOver == true && godMode == false)
+        {
+            timeText.gameObject.SetActive(false);
+            gameOverTimeText.text = gameTime.ToString("F2") + "sec";
+            if (gameOverRunNumber < 1)
+            {
+                EnableObjects(objectsToEnable);
+                DisableObjects(objectsToDisable);
+                barParent.SetActive(false);
+            }
+            gameOverRunNumber++;
+        }
+        if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Trigger))
+        {
+            Debug.Log("trigger pressed");
+            if (gameStarted == false)
+            {
+                InstantiateTube();
+                gameStarted = true;
+            }
+        }
+        if(ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Grip))
+        {
+            Debug.Log("grip pressed");
+            if (gameOver == true)
+            {
+                RestartGame();
+            }
+        }
+
+         /*   if (spawnTube.GetState(handType))
+        {
+            Debug.Log("trigger pressed");
+            if (gameStarted == false)
+            {
+                InstantiateTube();
+                gameStarted = true;
+            }
+        }
+        if (restart.GetState(handType))
+        {
+            Debug.Log("grip pressed");
+            if (gameOver == true)
+            {
+                restartGame();
+            }
+        }*/
+    }
+
+    private void FixedUpdate()
+    {
+        if (ring.transform.localScale.x <= smallestRadius)
+        {
+            Debug.Log("smallest size");
+        }
+        else
+        {
+            ring.transform.localScale += new Vector3(-shrinkFactor / 100f, -shrinkFactor / 100f, 0f);
+        }
+    }
+    public void EnableObjects(GameObject[] objects)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            objects[i].SetActive(true);
+        }
+    }
+    public void DisableObjects(GameObject[] objects)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            objects[i].SetActive(false);
+        }
+    }
+    void InstantiateTube()
+    {
+        previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
+        previousBar.transform.parent = barParent.transform;
+        for (int i = 0; i < barLength; i++)
+        {
+
+            switch (previousNumber)
+            {
+                case 0:
+                    currentNumber = Random.Range(0, 3);
+                    CheckBars();
+                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
+                    numberOfTimes[currentNumber]++;
+                    break;
+                case 1:
+                    currentNumber = Random.Range(0, 3);
+                    CheckBars();
+                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y + 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                    numberOfTimes[currentNumber]++;
+                    break;
+                case 2:
+                    currentNumber = Random.Range(0, 3);
+                    CheckBars();
+                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y - 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                    numberOfTimes[currentNumber]++;
+                    break;
+            }
+            previousBar.transform.parent = barParent.transform;
+            previousNumber = currentNumber;
+        }
+    }
+
+    void CheckBars()
+    {
+        if ((numberOfTimes[1] - numberOfTimes[2] >= 1) && currentNumber == 1)
+        {
+            Debug.Log("added down");
+            currentNumber = 2;
+        }
+        else if ((numberOfTimes[2] - numberOfTimes[1] >= 1) && currentNumber == 2)
+        {
+            Debug.Log("added up");
+            currentNumber = 1;
+        }
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void LoadLobby()
+    {
+        SceneManager.LoadScene(0);
+    }
+}
