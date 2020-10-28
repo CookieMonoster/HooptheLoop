@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Ring & Shrinking")]
     public GameObject ring;
+    public VivePoseTracker ringPoseTracker;
+    public GameObject positionTracker;
     public float shrinkFactor = 0.01f;
     public float startingRadius = 1.5f;
     public float smallestRadius = 0.1f;
@@ -25,9 +27,10 @@ public class GameManager : MonoBehaviour
     private int[] numberOfTimes = new int[] { 0, 0, 0 };
     public GameObject[] barPrefabs;
     public int barLength = 100;
-    private int currentNumber = 0;
     private int previousNumber = 0;
     private GameObject previousBar;
+    public float timeDelay;
+    private float timeDelayClock;
 
     [Header("Score Keep")]
     public float gameTime = 0.0f;
@@ -47,36 +50,59 @@ public class GameManager : MonoBehaviour
     {
         EnableObjects(objectsToDisable);
         DisableObjects(objectsToEnable);
+        previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
+        previousBar.transform.parent = barParent.transform;
+        for (int i = 0; i <= 10; i++)
+        {
+            previousBar = Instantiate(barPrefabs[0], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
+            previousBar.transform.parent = barParent.transform;
+        }
     }
 
     private void Update()
     {
-        ring = GameObject.Find("Ring");
+        
+        ring = GameObject.Find("Hoop");
         ring.SetActive(true);
-
-
-
+        timeDelayClock += Time.deltaTime;
         if (gameStarted == true)
         {
-            timeText.gameObject.SetActive(true);
+            //timeText.gameObject.SetActive(true);
 
-            if(gameOver != true)
+            //if(gameOver != true)
+            //{
+            //    gameTime += Time.deltaTime;
+            //    timeText.text = gameTime.ToString("F2") + "sec";
+            //}
+            if (gameStartRunNumber < 1)
             {
-                gameTime += Time.deltaTime;
-                timeText.text = gameTime.ToString("F2") + "sec";
-            }
-            if(gameStartRunNumber < 1)
-            {
+                ringPoseTracker.enabled = true;
+                ringPoseTracker.posOffset = new Vector3(positionTracker.transform.position.x, positionTracker.transform.position.y - 1.2f, positionTracker.transform.position.z - 0.1f);
                 DisableObjects(objectsToDisable);
                 DisableObjects(objectsToEnable);
                 barParent.SetActive(true);
             }
             gameStartRunNumber++;
+            if(timeDelayClock >= timeDelay)
+            {
+                InstantiateTube(CheckBars());
+                timeDelayClock = 0f;
+            }
+            
+        }
+        else
+        {
+            if (timeDelayClock >= timeDelay)
+            {
+                InstantiateTube(0);
+                timeDelayClock = 0f;
+            }
+
         }
         if (gameOver == true && godMode == false)
         {
-            timeText.gameObject.SetActive(false);
-            gameOverTimeText.text = gameTime.ToString("F2") + "sec";
+            //timeText.gameObject.SetActive(false);
+            //gameOverTimeText.text = gameTime.ToString("F2") + "sec";
             if (gameOverRunNumber < 1)
             {
                 EnableObjects(objectsToEnable);
@@ -85,16 +111,19 @@ public class GameManager : MonoBehaviour
             }
             gameOverRunNumber++;
         }
+
         if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Trigger))
         {
             Debug.Log("trigger pressed");
+            gameStarted = true;
+            /*ViveInput.TriggerHapticPulse(HandRole.RightHand);
             if (gameStarted == false)
             {
                 InstantiateTube();
-                gameStarted = true;
-            }
+                
+            }*/
         }
-        if(ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Grip))
+        if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Grip))
         {
             Debug.Log("grip pressed");
             if (gameOver == true)
@@ -147,50 +176,44 @@ public class GameManager : MonoBehaviour
             objects[i].SetActive(false);
         }
     }
-    void InstantiateTube()
+    void InstantiateTube(int currentNumber)
     {
-        previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
-        previousBar.transform.parent = barParent.transform;
-        for (int i = 0; i < barLength; i++)
+        
+        switch (previousNumber)
         {
-
-            switch (previousNumber)
-            {
-                case 0:
-                    currentNumber = Random.Range(0, 3);
-                    CheckBars();
-                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
-                    numberOfTimes[currentNumber]++;
-                    break;
-                case 1:
-                    currentNumber = Random.Range(0, 3);
-                    CheckBars();
-                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y + 0.5f, previousBar.transform.position.z), Quaternion.identity);
-                    numberOfTimes[currentNumber]++;
-                    break;
-                case 2:
-                    currentNumber = Random.Range(0, 3);
-                    CheckBars();
-                    previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y - 0.5f, previousBar.transform.position.z), Quaternion.identity);
-                    numberOfTimes[currentNumber]++;
-                    break;
-            }
-            previousBar.transform.parent = barParent.transform;
-            previousNumber = currentNumber;
+            case 0:
+                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
+                numberOfTimes[currentNumber]++;
+                break;
+            case 1:
+                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y + 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                numberOfTimes[currentNumber]++;
+                break;
+            case 2:
+                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y - 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                numberOfTimes[currentNumber]++;
+                break;
         }
+        previousBar.transform.parent = barParent.transform;
+        previousNumber = currentNumber;
+        
     }
 
-    void CheckBars()
+    int CheckBars()
     {
-        if ((numberOfTimes[1] - numberOfTimes[2] >= 1) && currentNumber == 1)
+        if (numberOfTimes[1] - numberOfTimes[2] >= 1)
         {
             Debug.Log("added down");
-            currentNumber = 2;
+            return 2;
         }
-        else if ((numberOfTimes[2] - numberOfTimes[1] >= 1) && currentNumber == 2)
+        else if (numberOfTimes[2] - numberOfTimes[1] >= 1)
         {
             Debug.Log("added up");
-            currentNumber = 1;
+            return 1;
+        }
+        else
+        {
+            return Random.Range(0, 3);
         }
     }
 

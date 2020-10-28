@@ -13,9 +13,6 @@ public class BarTranslate : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (_gameManager.gameStarted == true)
-        {
-            this.transform.Translate(Vector3.left * (translateFactor / 10f));
-        }
+        this.transform.Translate(Vector3.left * (translateFactor / 10f));
     }
 }
