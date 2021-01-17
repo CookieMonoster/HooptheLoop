@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     public bool godMode = false;
     public enum GameState
     {
-        Logo = 0,
+        Main = 0,
         Level
     }
     private GameState currentState;
@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     public LevelTransitioner levelTrans;
     public float timeDelay = 1f;
     private float timeDelayClock;
+    private int gameOverRunNumber = 0;
+    private int gameStartRunNumber = 0;
+
     [Header("Scenes")]
     public int sceneLogo = 0;
     public int sceneLevel = 1;
@@ -51,8 +54,7 @@ public class GameManager : MonoBehaviour
     [Header("Gameover objects to Enable/Disable")]
     public GameObject[] objectsToEnable;
     public GameObject[] objectsToDisable;
-    private int gameOverRunNumber = 0;
-    private int gameStartRunNumber = 0;
+    
 
 
 
@@ -64,7 +66,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         timeDelayClock = timeDelay;
-        currentState = GameState.Logo;
+        currentState = GameState.Main;
         nextState = GameState.Level;
         EnableObjects(objectsToDisable);
         DisableObjects(objectsToEnable);
@@ -77,7 +79,7 @@ public class GameManager : MonoBehaviour
         {
             switch (nextState)
             {
-                case GameState.Logo:
+                case GameState.Main:
                     SceneManager.LoadScene(sceneLogo);
                     currentState = nextState;
                     break;
