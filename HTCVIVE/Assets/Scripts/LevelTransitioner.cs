@@ -17,7 +17,10 @@ public class LevelTransitioner : MonoBehaviour
         levelToLoad = levelIndex;
         animator.SetTrigger("FadeOut");
     }
-
+    public void FadeIn()
+    {
+        animator.Play("FadeIn");
+    }
     public void OnFadeComplete()
     {
         SceneManager.LoadScene(levelToLoad);

@@ -7,15 +7,27 @@ using HTC.UnityPlugin.Vive;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager instance = null;
     [Header("Game State")]
     public bool gameStarted = false;
     public bool gameOver = false;
     public bool godMode = false;
+    public enum GameState
+    {
+        Logo = 0,
+        Level
+    }
+    private GameState currentState;
+    public GameState nextState;
+    public LevelTransitioner levelTrans;
+    public float timeDelay = 1f;
+    private float timeDelayClock;
+    [Header("Scenes")]
+    public int sceneLogo = 0;
+    public int sceneLevel = 1;
 
     [Header("Ring & Shrinking")]
     public GameObject ring;
-    public VivePoseTracker ringPoseTracker;
-    public GameObject positionTracker;
     public float shrinkFactor = 0.01f;
     public float startingRadius = 1.5f;
     public float smallestRadius = 0.1f;
@@ -29,8 +41,6 @@ public class GameManager : MonoBehaviour
     public int barLength = 100;
     private int previousNumber = 0;
     private GameObject previousBar;
-    public float timeDelay;
-    private float timeDelayClock;
 
     [Header("Score Keep")]
     public float gameTime = 0.0f;
@@ -46,27 +56,48 @@ public class GameManager : MonoBehaviour
 
 
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(this);
+        instance = this;
+    }
     private void Start()
     {
+        timeDelayClock = timeDelay;
+        currentState = GameState.Logo;
+        nextState = GameState.Level;
         EnableObjects(objectsToDisable);
         DisableObjects(objectsToEnable);
-        previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
-        previousBar.transform.parent = barParent.transform;
-        for (int i = 0; i <= 10; i++)
-        {
-            previousBar = Instantiate(barPrefabs[0], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y, previousBar.transform.position.z), Quaternion.identity);
-            previousBar.transform.parent = barParent.transform;
-        }
     }
 
     private void Update()
     {
-        
+        timeDelayClock -= Time.deltaTime;
+        if (currentState != nextState)
+        {
+            switch (nextState)
+            {
+                case GameState.Logo:
+                    SceneManager.LoadScene(sceneLogo);
+                    currentState = nextState;
+                    break;
+                case GameState.Level:
+                    while (timeDelayClock >= 0f)
+                    {
+                        timeDelayClock -= Time.deltaTime;
+                    }
+                    levelTrans.FadeToLevel(sceneLevel);
+                    currentState = nextState;
+                    break;
+                default:
+                    break;
+            }
+        }
         ring = GameObject.Find("Hoop");
         ring.SetActive(true);
-        timeDelayClock += Time.deltaTime;
         if (gameStarted == true)
         {
+            
             //timeText.gameObject.SetActive(true);
 
             //if(gameOver != true)
@@ -76,27 +107,21 @@ public class GameManager : MonoBehaviour
             //}
             if (gameStartRunNumber < 1)
             {
-                ringPoseTracker.enabled = true;
-                ringPoseTracker.posOffset = new Vector3(positionTracker.transform.position.x, positionTracker.transform.position.y - 1.2f, positionTracker.transform.position.z - 0.1f);
                 DisableObjects(objectsToDisable);
                 DisableObjects(objectsToEnable);
                 barParent.SetActive(true);
+                previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
+                previousBar.transform.parent = barParent.transform;
+                for (int i = 0; i <= barLength; i++)
+                {
+                    InstantiateTube(CheckBars());
+                    previousBar.transform.parent = barParent.transform;
+                }
             }
             gameStartRunNumber++;
-            if(timeDelayClock >= timeDelay)
-            {
-                InstantiateTube(CheckBars());
-                timeDelayClock = 0f;
-            }
+
             
-        }
-        else
-        {
-            if (timeDelayClock >= timeDelay)
-            {
-                InstantiateTube(0);
-                timeDelayClock = 0f;
-            }
+
 
         }
         if (gameOver == true && godMode == false)
@@ -178,7 +203,6 @@ public class GameManager : MonoBehaviour
     }
     void InstantiateTube(int currentNumber)
     {
-        
         switch (previousNumber)
         {
             case 0:
@@ -186,29 +210,29 @@ public class GameManager : MonoBehaviour
                 numberOfTimes[currentNumber]++;
                 break;
             case 1:
-                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y + 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y + 0.4f, previousBar.transform.position.z), Quaternion.identity);
                 numberOfTimes[currentNumber]++;
                 break;
             case 2:
-                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y - 0.5f, previousBar.transform.position.z), Quaternion.identity);
+                previousBar = Instantiate(barPrefabs[currentNumber], new Vector3(previousBar.transform.position.x + 0.75f, previousBar.transform.position.y - 0.4f, previousBar.transform.position.z), Quaternion.identity);
                 numberOfTimes[currentNumber]++;
                 break;
         }
         previousBar.transform.parent = barParent.transform;
         previousNumber = currentNumber;
-        
+
     }
 
     int CheckBars()
     {
-        if (numberOfTimes[1] - numberOfTimes[2] >= 1)
+        if (numberOfTimes[1] - numberOfTimes[2] >= 2)
         {
-            Debug.Log("added down");
+            Debug.Log("added down" + (numberOfTimes[1] - numberOfTimes[2]));
             return 2;
         }
-        else if (numberOfTimes[2] - numberOfTimes[1] >= 1)
+        else if (numberOfTimes[2] - numberOfTimes[1] >= 2)
         {
-            Debug.Log("added up");
+            Debug.Log("added up" + +(numberOfTimes[1] - numberOfTimes[2]));
             return 1;
         }
         else
@@ -225,5 +249,20 @@ public class GameManager : MonoBehaviour
     public void LoadLobby()
     {
         SceneManager.LoadScene(0);
+    }
+    public void setGameState(int stateNum, bool setBool)
+    {
+        switch (stateNum)
+        {
+            case 0:
+                gameStarted = setBool;
+                break;
+            case 1:
+                gameOver = setBool;
+                break;
+            default:
+                Debug.Log("SetGameState exception");
+                break;
+        }
     }
 }
