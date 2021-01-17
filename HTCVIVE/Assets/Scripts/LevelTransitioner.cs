@@ -24,6 +24,7 @@ public class LevelTransitioner : MonoBehaviour
     public void OnFadeComplete()
     {
         SceneManager.LoadScene(levelToLoad);
+        animator.Play("FadeIn");
     }
 
     public void ExitGame()

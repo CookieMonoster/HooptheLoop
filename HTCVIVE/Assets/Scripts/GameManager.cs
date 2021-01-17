@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public enum GameState
     {
         Main = 0,
+        Logo,
         Level
     }
     private GameState currentState;
@@ -26,8 +27,9 @@ public class GameManager : MonoBehaviour
     private int gameStartRunNumber = 0;
 
     [Header("Scenes")]
-    public int sceneLogo = 0;
-    public int sceneLevel = 1;
+    public int sceneMain = 0;
+    public int sceneLogo = 1;
+    public int sceneLevel = 2;
 
     [Header("Ring & Shrinking")]
     public GameObject ring;
@@ -67,7 +69,7 @@ public class GameManager : MonoBehaviour
     {
         timeDelayClock = timeDelay;
         currentState = GameState.Main;
-        nextState = GameState.Level;
+        nextState = GameState.Logo;
         EnableObjects(objectsToDisable);
         DisableObjects(objectsToEnable);
     }
@@ -80,8 +82,14 @@ public class GameManager : MonoBehaviour
             switch (nextState)
             {
                 case GameState.Main:
+                    SceneManager.LoadScene(sceneMain);
+                    currentState = nextState;
+                    break;
+                case GameState.Logo:
+                    Debug.Log("LOGO");
                     SceneManager.LoadScene(sceneLogo);
                     currentState = nextState;
+                    nextState = GameState.Level;
                     break;
                 case GameState.Level:
                     while (timeDelayClock >= 0f)
