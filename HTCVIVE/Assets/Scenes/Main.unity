@@ -856,33 +856,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d61028cff7e14f428b102575e4738da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameStarted: 0
-  gameOver: 0
-  godMode: 0
-  nextState: 0
+  currentState: 0
+  nextState: 1
+  highScore: 0
   levelTrans: {fileID: 1824784467}
   timeDelay: 5
   sceneMain: 0
   sceneLogo: 1
   sceneLevel: 2
-  ring: {fileID: 0}
-  shrinkFactor: 0
-  startingRadius: 1.5
-  smallestRadius: 0.1
-  spawnPoint: {fileID: 0}
-  barParent: {fileID: 0}
-  barParentPrefab: {fileID: 591148480685158427, guid: 77f15554969e9c946bc6686fced4666a,
-    type: 3}
-  barPrefabs:
-  - {fileID: 6009679063232842830, guid: 0391ae9aec36a81428ca986439b6c79a, type: 3}
-  - {fileID: 2613577634666769806, guid: d9bc7b77b47c4514395728744cd9b492, type: 3}
-  - {fileID: 6563805358052227800, guid: dcbd96690cb1cf9419a0eb260f8250d9, type: 3}
-  barLength: 50
-  gameTime: 0
-  timeText: {fileID: 0}
-  gameOverTimeText: {fileID: 0}
-  objectsToEnable: []
-  objectsToDisable: []
 --- !u!4 &1526262827
 Transform:
   m_ObjectHideFlags: 0

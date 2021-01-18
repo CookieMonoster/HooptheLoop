@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class BarTranslate : MonoBehaviour
 {
-   public float translateFactor = 1f;
-    public GameManager _gameManager;
+    public float translateFactor = 1f;
+    public LevelManager _levelManager;
 
     private void Start()
     {
-        _gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManager>();
+        _levelManager = GameObject.FindWithTag("LevelManager").GetComponent<LevelManager>();
     }
     void FixedUpdate()
     {

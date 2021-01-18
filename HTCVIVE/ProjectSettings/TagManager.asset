@@ -6,6 +6,7 @@ TagManager:
   tags:
   - GameManager
   - PlayerScoreTrigger
+  - LevelManager
   layers:
   - Default
   - TransparentFX
