@@ -46,6 +46,10 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if(instance != this)
+        {
+            Destroy(this.gameObject);
+        }
         if (currentState != nextState)
         {
             switch (nextState)
