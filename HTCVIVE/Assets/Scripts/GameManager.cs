@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     public GameState currentState;
     public GameState nextState;
     public float highScore;
-
+ 
     [Header("Level Transition")]
     public LevelTransitioner levelTrans;
     public float timeDelay = 1f;

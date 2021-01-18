@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
-    public GameManager gameManager;
     [Header("Game State")]
     public bool gameStarted = false;
     public bool gameOver = false;
@@ -53,8 +52,6 @@ public class LevelManager : MonoBehaviour
         ring = GameObject.Find("Hoop");
         ring.SetActive(true);
         ringTimerClock = ringTimer;
-        gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManager>();
-
     }
 
     private void Update()
@@ -86,11 +83,11 @@ public class LevelManager : MonoBehaviour
         }
         if (gameOver == true && godMode == false)
         {
-            if(gameTime > gameManager.GetHighScore())
-            { 
-                gameManager.SetHighScore(gameTime); 
+            if(gameTime > GameManager.instance.GetHighScore())
+            {
+                GameManager.instance.SetHighScore(gameTime); 
             }
-            highScoreText.text = "High Score: " + gameManager.GetHighScore().ToString("F2");
+            highScoreText.text = "High Score: " + GameManager.instance.GetHighScore().ToString("F2");
             //timeText.gameObject.SetActive(false);
             //gameOverTimeText.text = gameTime.ToString("F2") + "sec";
             if (isFirstGameOver)
