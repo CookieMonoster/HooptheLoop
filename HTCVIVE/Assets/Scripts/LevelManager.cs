@@ -11,9 +11,17 @@ public class LevelManager : MonoBehaviour
     public bool gameOver = false;
     public bool godMode = false;
 
-
     private bool isFirstGameOver = true;
     private bool isFirstGame = true;
+
+    [Header("Pause")]
+    public bool gamePaused = false;
+    private bool isPauseFirst = true;
+    public GameObject hoopPauseSphere;
+    public GameObject hoopGuidePauseSphere;
+
+    public GameObject pausedText;
+    public Vector3 positionOffset;
 
     [Header("Ring & Shrinking")]
     public GameObject ring;
@@ -56,13 +64,12 @@ public class LevelManager : MonoBehaviour
 
     private void Update()
     {
+        pausedText.SetActive(gamePaused && gameStarted && !gameOver);
         if (gameStarted)
         {
             timeText.gameObject.SetActive(true);
-
             if(!gameOver)
             {
-                
                 gameTime += Time.deltaTime;
                 timeText.text = gameTime.ToString("F2") + "sec";
                 ringTimerClock -= Time.deltaTime;
@@ -79,6 +86,10 @@ public class LevelManager : MonoBehaviour
                     ringTimerClock = ringTimer;
                 }
             }
+            else
+            {
+                gamePaused = false;
+            }
             if (isFirstGame)
             {
                 DisableObjects(objectsToDisable);
@@ -93,10 +104,29 @@ public class LevelManager : MonoBehaviour
                 }
                 isFirstGame = false;
             }
+
+
+            if (gamePaused)
+            {
+                if (isPauseFirst)
+                {
+                    hoopGuide.transform.position = ring.transform.position + positionOffset;
+                    hoopGuide.transform.rotation = ring.transform.rotation;
+                    
+                    isPauseFirst = false;
+                }
+            }
+            else
+            {
+                isPauseFirst = true;
+            }
+            
+            Time.timeScale = gamePaused ? 0 : 1;
+            hoopGuide.SetActive(gamePaused);
         }
         if (gameOver && !godMode)
         {
-            if(gameTime > GameManager.instance.GetHighScore())
+            if (gameTime > GameManager.instance.GetHighScore())
             {
                 GameManager.instance.SetHighScore(gameTime); 
             }
@@ -112,23 +142,35 @@ public class LevelManager : MonoBehaviour
             }
         }
 
+        //Check for A
+        if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.AKey))
+        {
+            if (gameStarted)
+            {
+                if (gamePaused)
+                {
+                    gamePaused = !checkGuide(1f, 10f);
+                }
+                else
+                {
+                    gamePaused = true;
+                }
+            }
+        }
+
+        //Check for trigger
         if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Trigger))
         {
-            float x = ring.transform.localEulerAngles.x >= 180 ? ring.transform.localEulerAngles.x - 360 : ring.transform.localEulerAngles.x;
-            float y = ring.transform.localEulerAngles.y >= 180 ? ring.transform.localEulerAngles.y - 360 : ring.transform.localEulerAngles.y;
-            float z = ring.transform.localEulerAngles.z >= 180 ? ring.transform.localEulerAngles.z - 360 : ring.transform.localEulerAngles.z;
-            if (hoopGuide.GetComponent<HoopGuideCollision>().collideWithRing && Mathf.Abs(z - 90) < 20 && Mathf.Abs(y) < 30 && Mathf.Abs(x) < 30)
+            if (checkGuide(1f, 10f))
             {
                 gameStarted = true;
             }
             Debug.Log("trigger pressed");
-            /*ViveInput.TriggerHapticPulse(HandRole.RightHand);
-            if (gameStarted == false)
-            {
-                InstantiateTube();
-                
-            }*/
+            ViveInput.TriggerHapticPulseEx(HandRole.RightHand);
         }
+
+
+        //Check for grip
         if (ViveInput.GetPressDownEx(HandRole.RightHand, ControllerButton.Grip))
         {
             Debug.Log("grip pressed");
@@ -138,6 +180,13 @@ public class LevelManager : MonoBehaviour
             }
         }
 
+        
+        bool checkGuide(float distanceAllowence, float angleAllowence)
+        {
+            Debug.Log(Vector3.Distance(ring.transform.position, hoopGuide.transform.position));
+            Debug.Log(Quaternion.Angle(ring.transform.rotation, hoopGuide.transform.rotation));
+            return Vector3.Distance(ring.transform.position, hoopGuide.transform.position) < distanceAllowence && Quaternion.Angle(ring.transform.rotation, hoopGuide.transform.rotation) < angleAllowence;
+        }
         /*   if (spawnTube.GetState(handType))
        {
            Debug.Log("trigger pressed");
@@ -198,12 +247,10 @@ public class LevelManager : MonoBehaviour
     {
         if (numberOfTimes[1] - numberOfTimes[2] >= 2)
         {
-            Debug.Log("added down" + (numberOfTimes[1] - numberOfTimes[2]));
             return 2;
         }
         else if (numberOfTimes[2] - numberOfTimes[1] >= 2)
         {
-            Debug.Log("added up" + (numberOfTimes[1] - numberOfTimes[2]));
             return 1;
         }
         else

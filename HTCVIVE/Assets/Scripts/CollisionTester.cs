@@ -6,21 +6,33 @@ using HTC.UnityPlugin.Vive;
 
 public class CollisionTester : MonoBehaviour
 {
-    public LevelManager _levelManager;
-    private void Start()
-    {
+    public bool doesSetState;
 
-        _levelManager = GameObject.FindWithTag("LevelManager").GetComponent<LevelManager>();
-    }
+    public bool isCollided;
+    public bool toDestroy;
+    public string tagName;
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player")
+        
+        if (other.tag == tagName)
         {
-            _levelManager.setGameState(1, true);
-
-
-            Destroy(this.gameObject);
+            if(doesSetState)
+            {
+                GameObject.FindWithTag("LevelManager").GetComponent<LevelManager>().setGameState(1, true);
+            }
+            isCollided = true;
+            if (toDestroy)
+            {
+                Destroy(this.gameObject);
+            }
         }
-
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag == tagName)
+        {
+            isCollided = false;
+        }
     }
 }

@@ -29,7 +29,10 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(this);
-        instance = this;
+        if(instance == null)
+            instance = this;
+        else
+            Destroy(this.gameObject);
     }
     private void Start()
     {
@@ -46,12 +49,9 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(instance != this)
-        {
-            Destroy(this.gameObject);
-        }
         if (currentState != nextState)
         {
+            Time.timeScale = 1;
             switch (nextState)
             {
                 case GameState.Main:
