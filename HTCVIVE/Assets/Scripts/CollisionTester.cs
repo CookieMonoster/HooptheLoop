@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using HTC.UnityPlugin.Vive;
+﻿using UnityEngine;
 
 
 public class CollisionTester : MonoBehaviour
@@ -12,18 +9,25 @@ public class CollisionTester : MonoBehaviour
     public bool toDestroy;
     public string tagName;
 
+    
+
     private void OnTriggerEnter(Collider other)
     {
-        
+        LevelManager levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
+
+
         if (other.tag == tagName)
         {
             if(doesSetState)
             {
-                GameObject.FindWithTag("LevelManager").GetComponent<LevelManager>().setGameState(1, true);
+                levelManager.setGameState(1, true);
+                levelManager.playLoseSound();
+                
             }
             isCollided = true;
             if (toDestroy)
             {
+                
                 Destroy(this.gameObject);
             }
         }

@@ -4,17 +4,13 @@ using UnityEngine;
 
 public class ScoreAdder : MonoBehaviour
 {
-    public LevelManager _levelManager;
-    private void Start()
-    {
-
-        _levelManager = GameObject.FindWithTag("LevelManager").GetComponent<LevelManager>();
-    }
+    public ParticleSystem explosion;
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "PlayerScoreTrigger")
+        if (other.name == "ScoreCollider")
         {
-            Debug.Log("Score + 1");
+            GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>().addScore(100);
+            explosion.Play();
             Destroy(this.gameObject);
         }
 

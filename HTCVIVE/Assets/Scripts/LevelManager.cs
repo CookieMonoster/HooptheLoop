@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
+
     [Header("Game State")]
     public bool gameStarted = false;
     public bool gameOver = false;
@@ -24,15 +25,20 @@ public class LevelManager : MonoBehaviour
     public Vector3 positionOffset;
 
     [Header("Ring & Shrinking")]
+    public GameObject startText;
+    public GameObject hoopGuideText;
+    public Animator ringAnim;
+    public float distanceAllowence = 0.5f;
+    public float angleAllowence = 10f;
     public GameObject ring;
     public GameObject ringScalePivot;
-    public float ringTimer = 2f;
-    private float ringTimerClock;
+    public int shrinkFrequencey = 3;
     public float shrinkFactor = 0.01f;
     public float startingRadius = 1.5f;
     public float smallestRadius = 0.1f;
 
     [Header("Bar Spawn")]
+    public Material[] barColors;
     public GameObject hoopGuide;
     public GameObject spawnPoint;
     public GameObject barParent;
@@ -43,7 +49,7 @@ public class LevelManager : MonoBehaviour
     private GameObject previousBar;
 
     [Header("Score Keep")]
-    public float gameTime = 0.0f;
+    public int score;
     public Text timeText;
     public Text gameOverTimeText;
     public Text highScoreText;
@@ -52,6 +58,13 @@ public class LevelManager : MonoBehaviour
     [Header("Gameover objects to Enable/Disable")]
     public GameObject[] objectsToEnable;
     public GameObject[] objectsToDisable;
+
+    [Header("Sound Effect")]
+    public AudioSource gainScoreSound;
+    public AudioSource pauseSound;
+    public AudioSource loseSound;
+    public AudioSource backgroundMusic;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -59,32 +72,20 @@ public class LevelManager : MonoBehaviour
         DisableObjects(objectsToEnable);
         ring = GameObject.Find("Hoop");
         ring.SetActive(true);
-        ringTimerClock = ringTimer;
     }
 
     private void Update()
     {
-        pausedText.SetActive(gamePaused && gameStarted && !gameOver);
+        //pausedText.SetActive(gamePaused && gameStarted && !gameOver);
         if (gameStarted)
         {
+            hoopGuideText.SetActive(false);
+            startText.SetActive(false);
             timeText.gameObject.SetActive(true);
             if(!gameOver)
             {
-                gameTime += Time.deltaTime;
-                timeText.text = gameTime.ToString("F2") + "sec";
-                ringTimerClock -= Time.deltaTime;
-                if (ringTimerClock <= 0)
-                {
-                    if (ringScalePivot.transform.localScale.x <= smallestRadius)
-                    {
-                        Debug.Log("smallest size");
-                    }
-                    else
-                    {
-                        ringScalePivot.transform.localScale += new Vector3(-shrinkFactor, -shrinkFactor / 2f, -shrinkFactor);
-                    }
-                    ringTimerClock = ringTimer;
-                }
+                timeText.text = score.ToString();
+                
             }
             else
             {
@@ -92,15 +93,17 @@ public class LevelManager : MonoBehaviour
             }
             if (isFirstGame)
             {
+                pauseSound.Play();
                 DisableObjects(objectsToDisable);
                 DisableObjects(objectsToEnable);
                 barParent.SetActive(true);
                 previousBar = Instantiate(barPrefabs[0], spawnPoint.transform.position, Quaternion.identity);
+                previousBar.transform.GetChild(0).GetComponent<Renderer>().material = barColors[barColors.Length - 1];
                 previousBar.transform.parent = barParent.transform;
                 for (int i = 0; i <= barLength; i++)
                 {
                     InstantiateTube(CheckBars());
-                    previousBar.transform.parent = barParent.transform;
+                    previousBar.transform.GetChild(0).GetComponent<Renderer>().material = barColors[i % barColors.Length];
                 }
                 isFirstGame = false;
             }
@@ -108,6 +111,7 @@ public class LevelManager : MonoBehaviour
 
             if (gamePaused)
             {
+                checkGuide(distanceAllowence, angleAllowence);
                 if (isPauseFirst)
                 {
                     hoopGuide.transform.position = ring.transform.position + positionOffset;
@@ -124,13 +128,17 @@ public class LevelManager : MonoBehaviour
             Time.timeScale = gamePaused ? 0 : 1;
             hoopGuide.SetActive(gamePaused);
         }
+        else
+        {
+            checkGuide(distanceAllowence, angleAllowence);
+        }
         if (gameOver && !godMode)
         {
-            if (gameTime > GameManager.instance.GetHighScore())
+            if (score > GameManager.instance.GetHighScore())
             {
-                GameManager.instance.SetHighScore(gameTime); 
+                GameManager.instance.SetHighScore(score); 
             }
-            highScoreText.text = "High Score: " + GameManager.instance.GetHighScore().ToString("F2");
+            highScoreText.text = "High Score: " + GameManager.instance.GetHighScore().ToString();
             //timeText.gameObject.SetActive(false);
             //gameOverTimeText.text = gameTime.ToString("F2") + "sec";
             if (isFirstGameOver)
@@ -149,11 +157,16 @@ public class LevelManager : MonoBehaviour
             {
                 if (gamePaused)
                 {
-                    gamePaused = !checkGuide(1f, 10f);
+                    if(checkGuide(1f, 10f))
+                    {
+                        gamePaused = false;
+                        pauseSound.Play();
+                    }
                 }
                 else
                 {
                     gamePaused = true;
+                    pauseSound.Play();
                 }
             }
         }
@@ -183,9 +196,45 @@ public class LevelManager : MonoBehaviour
         
         bool checkGuide(float distanceAllowence, float angleAllowence)
         {
-            Debug.Log(Vector3.Distance(ring.transform.position, hoopGuide.transform.position));
-            Debug.Log(Quaternion.Angle(ring.transform.rotation, hoopGuide.transform.rotation));
-            return Vector3.Distance(ring.transform.position, hoopGuide.transform.position) < distanceAllowence && Quaternion.Angle(ring.transform.rotation, hoopGuide.transform.rotation) < angleAllowence;
+            if (Vector3.Distance(ring.transform.position, hoopGuide.transform.position) < distanceAllowence == true)
+            {
+                if(Quaternion.Angle(ring.transform.rotation, hoopGuide.transform.rotation) < angleAllowence == true)
+                {
+                    setColor(hoopGuide.transform.GetChild(0), Color.green);
+                    if (!gamePaused)
+                    {
+                        startText.SetActive(true);
+                        hoopGuideText.SetActive(false);
+                    }
+                    ringAnim.Play("Idle");
+                    return true;
+                }
+                setColor(hoopGuide.transform.GetChild(0), Color.yellow);
+                if (!gamePaused)
+                {
+                    startText.SetActive(false);
+                    hoopGuideText.SetActive(true);
+                }
+                ringAnim.Play("HoopGuide");
+                return false;
+            }
+            setColor(hoopGuide.transform.GetChild(0), Color.yellow);
+            if (!gamePaused)
+            {
+                startText.SetActive(false);
+                hoopGuideText.SetActive(true);
+            }
+            ringAnim.Play("HoopGuide");
+            return false;
+            
+        }
+
+        void setColor(Transform obj, Color color)
+        {
+            color.a = 0.45f;
+            Material mat = obj.GetComponent<Renderer>().material;
+            mat.SetColor("_Color", color);
+  
         }
         /*   if (spawnTube.GetState(handType))
        {
@@ -238,6 +287,7 @@ public class LevelManager : MonoBehaviour
                 numberOfTimes[currentNumber]++;
                 break;
         }
+
         previousBar.transform.parent = barParent.transform;
         previousNumber = currentNumber;
 
@@ -261,6 +311,7 @@ public class LevelManager : MonoBehaviour
 
     public void RestartGame()
     {
+        backgroundMusic.Play();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     public void setGameState(int stateNum, bool setBool)
@@ -277,5 +328,29 @@ public class LevelManager : MonoBehaviour
                 Debug.Log("SetGameState exception");
                 break;
         }
+    }
+
+    public void addScore(int score)
+    {
+        this.score += score;
+        gainScoreSound.Play();
+        if (this.score % shrinkFrequencey == 0)
+        {
+            if (ringScalePivot.transform.localScale.x <= smallestRadius)
+            {
+                Debug.Log("smallest size");
+            }
+            else
+            {
+                ringScalePivot.transform.localScale += new Vector3(-shrinkFactor, -shrinkFactor / 2f, -shrinkFactor);
+            }
+        }
+        
+    }
+
+    public void playLoseSound()
+    {
+        loseSound.Play();
+        backgroundMusic.Stop();
     }
 }

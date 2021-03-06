@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     }
     public GameState currentState;
     public GameState nextState;
-    public float highScore;
+    public int highScore;
  
     [Header("Level Transition")]
     public LevelTransitioner levelTrans;
@@ -38,11 +38,11 @@ public class GameManager : MonoBehaviour
     {
         timeDelayClock = timeDelay;  
     }
-    public float GetHighScore()
+    public int GetHighScore()
     {
         return highScore;
     }
-    public void SetHighScore(float set)
+    public void SetHighScore(int set)
     {
         highScore = set;
     }
