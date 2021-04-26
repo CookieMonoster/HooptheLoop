@@ -79,8 +79,6 @@ public class LevelManager : MonoBehaviour
         //pausedText.SetActive(gamePaused && gameStarted && !gameOver);
         if (gameStarted)
         {
-           
-
             hoopGuideText.SetActive(false);
             startText.SetActive(false);
             timeText.gameObject.SetActive(true);
@@ -257,16 +255,7 @@ public class LevelManager : MonoBehaviour
        }*/
     }
 
-    void OnApplicationFocus(bool hasFocus)
-    {
-        Debug.Log(hasFocus);
-        if (!hasFocus)
-        {
-            gamePaused = true;
-        }
-    }
-
-
+   
     public void EnableObjects(GameObject[] objects)
     {
         for (int i = 0; i < objects.Length; i++)
