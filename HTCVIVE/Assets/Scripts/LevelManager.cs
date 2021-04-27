@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HTC.UnityPlugin.Vive;
 using UnityEngine.SceneManagement;
+using Oculus.Platform;
 
 
 public class LevelManager : MonoBehaviour
@@ -73,14 +74,50 @@ public class LevelManager : MonoBehaviour
         ring = GameObject.Find("Hoop");
         ring.SetActive(true);
     }
+    void Awake()
+    {
+        try
+        {
+            Core.AsyncInitialize();
+            Entitlements.IsUserEntitledToApplication().OnComplete(EntitlementCallback);
+        }
+        catch (UnityException e)
+        {
+            Debug.LogError("Platform failed to initialize due to exception.");
+            Debug.LogException(e);
+            // Immediately quit the application.
+            UnityEngine.Application.Quit();
+        }
+    }
 
+
+    // Called when the Oculus Platform completes the async entitlement check request and a result is available.
+    void EntitlementCallback(Message msg)
+    {
+        if (msg.IsError) // User failed entitlement check
+        {
+            // Implements a default behavior for an entitlement check failure -- log the failure and exit the app.
+            Debug.LogError("You are NOT entitled to use this app.");
+            UnityEngine.Application.Quit();
+        }
+        else // User passed entitlement check
+        {
+            // Log the succeeded entitlement check for debugging.
+            Debug.Log("You are entitled to use this app.");
+        }
+    }
     private void Update()
     {
         //pausedText.SetActive(gamePaused && gameStarted && !gameOver);
         if (gameStarted)
         {
-           
-
+            if (!gameOver)
+            {
+                if (!OVRManager.hasInputFocus || !OVRManager.hasVrFocus)
+                {
+                    gamePaused = true;
+                }
+            }
             hoopGuideText.SetActive(false);
             startText.SetActive(false);
             timeText.gameObject.SetActive(true);
@@ -257,16 +294,7 @@ public class LevelManager : MonoBehaviour
        }*/
     }
 
-    void OnApplicationFocus(bool hasFocus)
-    {
-        Debug.Log(hasFocus);
-        if (!hasFocus)
-        {
-            gamePaused = true;
-        }
-    }
-
-
+   
     public void EnableObjects(GameObject[] objects)
     {
         for (int i = 0; i < objects.Length; i++)
