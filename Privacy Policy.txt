@@ -6,6 +6,7 @@ PERSONAL DATA PROCESSING POLICY
 
 2. Data collection by Hoop the Loop
 2.1. We do not nor have the means to collect any personal data at this time.
+2.2. Since we do not collect or store any personal data, we can not provide any service regarding your personal data such as data request and data deletion.
 
 3. Data collection of other platforms.
 3.1. Though we do not collect any personal data, your personal data are processed by the platforms through which you have purchased our game:
